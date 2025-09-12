@@ -1,0 +1,44 @@
+{
+    "name": "hosseinhezami/laravel-gemini",
+    "description": "A production-ready Laravel package to integrate with the Google Gemini API. Supports text, image, video, audio, long-context, structured output, function-calling and understanding capabilities.",
+    "keywords": ["laravel", "gemini", "ai", "api", "google"],
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hossein Hezami",
+            "email": "hossein.hezami@gmail.com"
+        }
+    ],
+    "require": {
+		"php": "^8.2|^8.3|^8.4|^8.5",
+		"illuminate/support": "^10.0|^11.0|^12.0",
+		"illuminate/http": "^10.0|^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HosseinHezami\\LaravelGemini\\": "src/"
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HosseinHezami\\LaravelGemini\\GeminiServiceProvider"
+            ],
+            "aliases": {
+                "Gemini": "HosseinHezami\\LaravelGemini\\Facades\\Gemini"
+            }
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php artisan vendor:publish --tag=gemini-config --force"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
