@@ -8,6 +8,7 @@ use HosseinHezami\LaravelGemini\Builders\ImageBuilder;
 use HosseinHezami\LaravelGemini\Builders\VideoBuilder;
 use HosseinHezami\LaravelGemini\Builders\AudioBuilder;
 use HosseinHezami\LaravelGemini\Builders\FileBuilder;
+use HosseinHezami\LaravelGemini\Builders\CacheBuilder;
 
 class Gemini extends Facade
 {
@@ -39,5 +40,10 @@ class Gemini extends Facade
     public static function files(): FileBuilder
     {
         return static::getFacadeRoot()->files();
+    }
+
+    public static function caches(): CacheBuilder
+    {
+        return static::getFacadeRoot()->caches();
     }
 }

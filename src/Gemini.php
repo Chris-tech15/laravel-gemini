@@ -7,6 +7,7 @@ use HosseinHezami\LaravelGemini\Builders\ImageBuilder;
 use HosseinHezami\LaravelGemini\Builders\VideoBuilder;
 use HosseinHezami\LaravelGemini\Builders\AudioBuilder;
 use HosseinHezami\LaravelGemini\Builders\FileBuilder;
+use HosseinHezami\LaravelGemini\Builders\CacheBuilder;
 use HosseinHezami\LaravelGemini\Factory\ProviderFactory;
 
 class Gemini
@@ -41,6 +42,11 @@ class Gemini
     public function files(): FileBuilder
     {
         return new FileBuilder($this->getProvider());
+    }
+
+    public function caches(): CacheBuilder
+    {
+        return new CacheBuilder($this->getProvider());
     }
 
     public function models()

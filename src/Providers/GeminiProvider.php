@@ -127,6 +127,105 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
     }
 
+    // Create cached content
+    public function createCachedContent(array $params): Responses\CacheResponse
+    {
+        $payload = [
+            'model' => "models/{$params['model']}",
+            'contents' => $params['contents'],
+        ];
+
+        if (!empty($params['systemInstruction'])) {
+            $payload['systemInstruction'] = ['parts' => [['text' => $params['systemInstruction']]]];
+        }
+        if (!empty($params['tools'])) {
+            $payload['tools'] = $params['tools'];
+        }
+        if (!empty($params['toolConfig'])) {
+            $payload['toolConfig'] = $params['toolConfig'];
+        }
+        if (!empty($params['displayName'])) {
+            $payload['displayName'] = $params['displayName'];
+        }
+        
+        if (!empty($params['expireTime'])) {
+            $payload['expireTime'] = $params['expireTime'];
+        } elseif (!empty($params['ttl'])) {
+            $payload['ttl'] = $params['ttl'] ?? config('gemini.caching.default_ttl');
+        }
+        
+        try {
+            $response = $this->http->post('cachedContents', $payload);
+            return $this->handleResponse($response, 'Cache');
+        } catch (\Exception $e) {
+            throw new ApiException("Create cache error: {$e->getMessage()}");
+        }
+    }
+
+    // List cached contents
+    public function listCachedContents(array $params = []): Responses\CacheResponse
+    {
+        $queryParams = http_build_query(array_filter([
+            'pageSize' => $params['pageSize'] ?? config('gemini.caching.default_page_size'),
+            'pageToken' => $params['pageToken'] ?? null,
+        ]));
+
+        try {
+            $response = $this->http->get("cachedContents?{$queryParams}");
+            return $this->handleResponse($response, 'Cache');
+        } catch (\Exception $e) {
+            throw new ApiException("List caches error: {$e->getMessage()}");
+        }
+    }
+
+    // Get cached content
+    public function getCachedContent(string $name): Responses\CacheResponse
+    {
+        try {
+            $response = $this->http->get($name);
+            return $this->handleResponse($response, 'Cache');
+        } catch (\Exception $e) {
+            throw new ApiException("Get cache error: {$e->getMessage()}");
+        }
+    }
+
+    // Update cached content (expiration only)
+    public function updateCachedContent(string $name, array $expiration): Responses\CacheResponse
+    {
+        $payload = [];
+
+        if (!empty($expiration['ttl']) || !empty($expiration['expireTime'])) {
+            $payload = [];
+            if (!empty($expiration['expireTime'])) {
+                $payload['expireTime'] = $expiration['expireTime'];
+            } elseif (!empty($expiration['ttl'])) {
+                $payload['ttl'] = $expiration['ttl'];
+            } else {
+                $payload['ttl'] = config('gemini.caching.default_ttl');
+            }
+        } else {
+            throw new ValidationException('TTL or expireTime is required for update.');
+        }
+
+        try {
+            $response = $this->http->patch("{$name}", $payload);
+            return $this->handleResponse($response, 'Cache');
+        } catch (\Exception $e) {
+            throw new ApiException("Update cache error: {$e->getMessage()}");
+        }
+    }
+
+    // Delete cached content
+    public function deleteCachedContent(string $name): bool
+    {
+        try {
+            $response = $this->http->delete($name);
+            return $response->successful();
+        } catch (\Exception $e) {
+            throw new ApiException("Delete cache error: {$e->getMessage()}");
+        }
+    }
+
     public function models(): array
     {
         $response = $this->http->get('models');

@@ -4,6 +4,7 @@ namespace HosseinHezami\LaravelGemini\Builders;
 
 use HosseinHezami\LaravelGemini\Contracts\ProviderInterface;
 use HosseinHezami\LaravelGemini\Exceptions\ValidationException;
+use HosseinHezami\LaravelGemini\Responses\CacheResponse;
 
 abstract class BaseBuilder
 {
@@ -104,6 +105,58 @@ abstract class BaseBuilder
     {
         $this->params['fileType'] = $fileType;
         $this->params['filePath'] = $filePath;
+        return $this;
+    }
+
+    public function cache(
+        ?array $tools = [],
+        ?array $toolConfig = [],
+        ?string $displayName = null,
+        ?string $ttl = null,
+        ?string $expireTime = null
+    ): string {
+        // Build contents from existing params (like prompt, history)
+        $contents = [];
+        if (isset($this->params['history'])) {
+            $contents = array_merge($contents, $this->params['history']);
+        }
+        if (isset($this->params['prompt'])) {
+            $contents[] = ['role' => 'user', 'parts' => [['text' => $this->params['prompt']]]];
+        }
+
+        // Use system if set
+        $systemInstruction = isset($this->params['system']) ? $this->params['system'] : null;
+
+        // Prepare params for provider
+        $cacheParams = [
+            'model' => $this->params['model'],
+            'contents' => $contents,
+            'systemInstruction' => $systemInstruction,
+            'tools' => $tools,
+            'toolConfig' => $toolConfig,
+            'displayName' => $displayName,
+            'ttl' => $ttl ?? config('gemini.caching.default_ttl'),
+            'expireTime' => $expireTime,
+        ];
+
+        // Call provider to create
+        $response = $this->provider->createCachedContent($cacheParams);
+        
+        // Return the cache name for chaining or use
+        return $response->name();
+    }
+    
+    public function getCache(string $name): CacheResponse
+    {
+        if (empty($name)) {
+            throw new ValidationException('Cache name is required.');
+        }
+        return $this->provider->getCachedContent($name);
+    }
+
+    public function cachedContent(string $name): self
+    {
+        $this->params['cachedContent'] = $name;
         return $this;
     }
 

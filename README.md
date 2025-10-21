@@ -1,6 +1,12 @@
 # Laravel Gemini
 
-A production-ready Laravel package to integrate with the Google Gemini API. Supports text, image, video, audio, long-context, structured output, function-calling and understanding capabilities.
+A production-ready Laravel package to integrate with the Google Gemini API. Supports text, image, video, audio, long-context, structured output, files, caching, function-calling and understanding capabilities.
+
+[![Version](https://img.shields.io/packagist/v/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
+[![Downloads](https://img.shields.io/packagist/dt/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
+[![Star](https://img.shields.io/packagist/stars/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
+[![License](https://img.shields.io/packagist/l/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
+[![Laravel Compatible](https://img.shields.io/badge/Laravel-10%2B-brightgreen.svg)](https://hosseinhezami.github.io/laravel-gemini)
 
 ## Features
 
@@ -13,6 +19,7 @@ A production-ready Laravel package to integrate with the Google Gemini API. Supp
 - 📊 File management capabilities
 - ⚡ Real-time streaming responses
 - 🛡️ Configurable safety settings
+- 🗄️ Caching for pre-processed content
 
 ## Installation
 
@@ -47,6 +54,8 @@ Configuration lives in `config/gemini.php`. Below are the most important keys an
 | `logging` | Log requests/responses (useful for debugging). | `false` |
 | `stream.chunk_size` | Stream buffer chunk size. | `1024` |
 | `stream.timeout` | Stream timeout (ms). | `1000` |
+| `caching.default_ttl` | Default TTL for cache expiration (e.g., '3600s'). | `'3600s'` |
+| `caching.default_page_size` | Default page size for listing caches. | `50` |
 
 ### Providers / models / methods
 
@@ -76,7 +85,7 @@ The `providers` array lets you map capability types to models and HTTP methods t
 
 ## Builder APIs — full method reference
 
-This package exposes a set of builder-style facades: `Gemini::text()`, `Gemini::image()`, `Gemini::video()`, `Gemini::audio()`, `Gemini::embeddings()` and `Gemini::files()`.
+This package exposes a set of builder-style facades: `Gemini::text()`, `Gemini::image()`, `Gemini::video()`, `Gemini::audio()`, `Gemini::embeddings()`, `Gemini::files()` and `Gemini::caches()`.
 
 Below is a concise reference of commonly available chainable methods and what they do. Method availability depends on the builder.
 
@@ -115,6 +124,9 @@ Common methods:
 | `safetySettings(array)` | array | Safety thresholds from config. |
 | `method(string)` | provider method | Override provider method name (e.g., `generateContent`). |
 | `upload(string $type, string $path)` | (type, local-file-path) | Attach a file (image/document/audio/video) to the request. |
+| `cache(array $tools = [], array $toolConfig = [], string $displayName = null, string $ttl = null, string $expireTime = null)` | optional params | Create a cache from current builder params and return cache name. |
+| `getCache(string $name)` | cache name | Get details of a cached content. |
+| `cachedContent(string $name)` | cache name | Use a cached content for generation. |
 | `stream(callable)` | callback | Stream chunks (SSE / server events). |
 | `generate()` | — | Execute request and return a Response object. |
 
@@ -210,6 +222,9 @@ Use for image generation.
 | `model(string)` | model id | Model for image generation. |
 | `prompt(string)` | prompt text | Image description. |
 | `method(string)` | e.g. `predict` | Provider method (predict / generateContent). |
+| `cache(array $tools = [], array $toolConfig = [], string $displayName = null, string $ttl = null, string $expireTime = null)` | optional params | Create a cache from current builder params and return cache name. |
+| `getCache(string $name)` | cache name | Get details of a cached content. |
+| `cachedContent(string $name)` | cache name | Use a cached content for generation. |
 | `generate()` | — | Run generation. |
 | `save($path)` | local path | Save image bytes to disk. |
 
@@ -235,6 +250,9 @@ Use for short or long-running video generation.
 |---|---:|---|
 | `model(string)` | model id | Video model. |
 | `prompt(string)` | prompt | Describe the video. |
+| `cache(array $tools = [], array $toolConfig = [], string $displayName = null, string $ttl = null, string $expireTime = null)` | optional params | Create a cache from current builder params and return cache name. |
+| `getCache(string $name)` | cache name | Get details of a cached content. |
+| `cachedContent(string $name)` | cache name | Use a cached content for generation. |
 | `generate()` | — | Initiates video creation (may be long-running). |
 | `save($path)` | local path | Polls provider and saves final video file. |
 
@@ -252,6 +270,9 @@ Use for TTS generation.
 | `prompt(string)` | text-to-speak | Audio file description |
 | `voiceName(string)` | voice id | Select a voice (e.g. `Kore`). |
 | `speakerVoices(array)` | speakers array | Speakers (e.g. [['speaker' => 'Joe', 'voiceName' => 'Kore'], ['speaker' => 'Jane', 'voiceName' => 'Puck']]). |
+| `cache(array $tools = [], array $toolConfig = [], string $displayName = null, string $ttl = null, string $expireTime = null)` | optional params | Create a cache from current builder params and return cache name. |
+| `getCache(string $name)` | cache name | Get details of a cached content. |
+| `cachedContent(string $name)` | cache name | Use a cached content for generation. |
 | `generate()` | — | Generate audio bytes. |
 | `save($path)` | local path | Save generated audio (wav/mp3). |
 
@@ -270,8 +291,10 @@ $embeddings = Gemini::embeddings([
 /* embedding_config */
 // https://ai.google.dev/gemini-api/docs/embeddings
 // 'embedding_config': {
-//     'task_type': 'SEMANTIC_SIMILARITY', // SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING, RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY, CODE_RETRIEVAL_QUERY, QUESTION_ANSWERING, FACT_VERIFICATION
-//     'output_dimensionality': 768 // 128, 256, 512, 768, 1536, 2048
+//     'embedding_config': {
+//         'task_type': 'SEMANTIC_SIMILARITY', // SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING, RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY, CODE_RETRIEVAL_QUERY, QUESTION_ANSWERING, FACT_VERIFICATION
+//         'embedding_dimensionality': 768 // 128, 256, 512, 768, 1536, 2048
+//     }
 // }
 ```
 Return value is the raw embeddings structure (provider-specific). Use these vectors for semantic search, similarity, clustering, etc.
@@ -336,6 +359,90 @@ $success = Gemini::files()->delete($file_id);
 
 ---
 
+### Caching API (`Gemini::caches()`)
+
+High-level cache manager for pre-processing and storing content (prompts, system instructions, history, files) to reuse in generation requests, reducing latency and costs. Caches are model-specific and temporary.
+
+| Method | Args | Description |
+|---|---:|---|
+| `create(string $model, array $contents, ?string $systemInstruction = null, array $tools = [], array $toolConfig = [], ?string $displayName = null, ?string $ttl = null, ?string $expireTime = null)` | required/optional params | Create a cached content and return CacheResponse. |
+| `list(?int $pageSize = null, ?string $pageToken = null)` | optional params | List cached contents (supports pagination). |
+| `get(string $name)` | cache name | Get details of a cached content. |
+| `update(string $name, ?string $ttl = null, ?string $expireTime = null)` | cache name and expiration | Update cache expiration (TTL or expireTime). |
+| `delete(string $name)` | cache name | Delete a cached content. |
+
+**Caching**
+
+```php
+// Create a cache
+$cache = Gemini::caches()->create(
+    model: 'gemini-2.5-flash',
+    contents: [['role' => 'user', 'parts' => [['text' => 'Sample content']]]],
+    systemInstruction: 'You are a helpful assistant.',
+    tools: [], // Optional
+    toolConfig: [], // Optional
+    displayName: 'My Cache', // Optional
+    ttl: '600s' // Optional TTL (e.g., '300s') or expireTime: '2024-12-31T23:59:59Z'
+);
+$cacheName = $cache->name(); // e.g., 'cachedContents/abc123'
+
+// List all caches
+$caches = Gemini::caches()->list(pageSize: 50, pageToken: 'nextPageToken');
+
+// Get cache details
+$cacheInfo = Gemini::caches()->get($cacheName);
+
+// Update cache expiration
+$updatedCache = Gemini::caches()->update(
+    name: $cacheName,
+    ttl: '1200s' // Or expireTime: '2024-12-31T23:59:59Z'
+);
+
+// Delete a cache
+$success = Gemini::caches()->delete($cacheName);
+```
+
+**CacheResponse Methods**
+
+- `name()`: Returns the cache name (e.g., 'cachedContents/abc123')
+- `displayName()`: Returns the Display Name (e.g., 'Default Cache')
+- `model()`: Returns the model used
+- `expireTime()`: Returns expiration
+- `usageMetadata()`: Returns usage metadata
+- `toArray()`: Full response as array
+
+**Caching in Generation Builders**
+
+Caching is also integrated into text, image, video, and audio builders for seamless use:
+
+```php
+// Create cache from builder params
+$cacheName = Gemini::text()
+    ->model('gemini-2.5-flash')
+    ->prompt('Sample prompt')
+    ->system('System instruction')
+    ->history([['role' => 'user', 'parts' => [['text' => 'History item']]]]) // optional
+    ->cache(
+        tools: [], // optional
+        toolConfig: [], // optional
+        displayName: 'My Cache', // optional
+        ttl: '600s' // optional, or expireTime
+    );
+
+// Get cache details from builder
+$cacheInfo = Gemini::text()->getCache($cacheName);
+
+// Use cached content in generation
+$response = Gemini::text()
+    ->prompt('Summarize this.')
+    ->cachedContent($cacheName)
+    ->generate();
+```
+
+For more details, refer to the [Gemini API Caching Documentation](https://ai.google.dev/api/caching).
+
+---
+
 ### Streaming (Server-Sent Events)
 The `stream` route uses `Content-Type: text/event-stream`. Connect from a browser or SSE client and consume `data: <json>` messages per chunk.
 
@@ -359,6 +466,7 @@ The `stream` route uses `Content-Type: text/event-stream`. Connect from a browse
 - For large media (video) prefer long-running `predictLongRunning` models and rely on `save()` to poll and download final asset.  
 - Use `safetySettings` from config for content filtering. You can override per-request.  
 - When uploading user-supplied files, validate MIME type and size before calling `Gemini::files()->upload`.  
+- For caching, use TTL wisely to avoid expired caches; always check expiration in responses.
 
 ---
 
@@ -372,10 +480,10 @@ The package includes helpful Artisan commands:
 
 ---
 
-## License
-
-This package is open-source software licensed under the MIT license.
-
 ## Contributing
 
-Contributions, bug reports and pull requests are welcome.
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

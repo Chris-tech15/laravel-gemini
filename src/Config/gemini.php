@@ -152,4 +152,18 @@ return [
         'timeout' => env('GEMINI_STREAM_TIMEOUT', 1000),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Caching Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Cache Configuration.
+    |
+    */
+
+    'caching' => [
+        'default_ttl' => '3600s', // Default expiration TTL (e.g., '300s', '1h')
+        'max_page_size' => 50, // Default page size for listing caches
+    ],
+
 ];

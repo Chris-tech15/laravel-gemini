@@ -34,6 +34,16 @@ class HttpClient
         return $this->client->get($url);
     }
     
+    public function patch(string $url, array $data): \Illuminate\Http\Client\Response
+    {
+        return $this->client->patch($url, $data);
+    }
+    
+    public function delete(string $url): \Illuminate\Http\Client\Response
+    {
+        return $this->client->delete($url);
+    }
+    
     public function withOptions(array $options): self
     {
         $this->client = $this->client->withOptions($options);
