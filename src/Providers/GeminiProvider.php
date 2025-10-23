@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Log;
 
 class GeminiProvider extends BaseProvider implements ProviderInterface
 {
+    public function __construct(array $config = [], ?string $apiKey = null)
+    {
+        parent::__construct($apiKey);
+    }
+
     public function generateText(array $params): Responses\TextResponse
     {
         return $this->executeRequest($params, 'Text');
@@ -34,7 +39,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
 
     public function embeddings(array $params): array
     {
-        $response = $this->http->post("models/{$params['model']}:embedContent", $params);
+        $response = $this->http->post("/v1beta/models/{$params['model']}:embedContent", $params);
         return $response->json();
     }
 
@@ -45,24 +50,11 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
         return $this->upload($params['fileType'], $params['filePath']);
     }
-
+    
     public function listFiles(array $params = []): Responses\FileResponse
     {
         try {
-			$response = Http::baseUrl("https://generativelanguage.googleapis.com")
-			->withHeaders([
-				'x-goog-api-key' => config('gemini.api_key'),
-			])
-			->timeout(config('gemini.timeout'))
-			->retry(config('gemini.retry_policy.max_retries'), config('gemini.retry_policy.retry_delay'), function ($exception, $request) {
-				if ($exception instanceof Exceptions\RateLimitException) {
-					sleep($exception->retryAfter ?? 1);
-					return true;
-				}
-				return $exception->response->status() >= 500;
-			})
-			->get("v1beta/files");
-
+            $response = $this->http->get('/v1beta/files');
             return $this->handleResponse($response, 'File');
         } catch (\Exception $e) {
             throw new ApiException("Get files list error: {$e->getMessage()}");
@@ -76,20 +68,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
 
         try {
-			$response = Http::baseUrl("https://generativelanguage.googleapis.com")
-			->withHeaders([
-				'x-goog-api-key' => config('gemini.api_key'),
-			])
-			->timeout(config('gemini.timeout'))
-			->retry(config('gemini.retry_policy.max_retries'), config('gemini.retry_policy.retry_delay'), function ($exception, $request) {
-				if ($exception instanceof Exceptions\RateLimitException) {
-					sleep($exception->retryAfter ?? 1);
-					return true;
-				}
-				return $exception->response->status() >= 500;
-			})
-			->get("v1beta/files/{$fileName}");
-			
+            $response = $this->http->get("/v1beta/files/{$fileName}");
             return $this->handleResponse($response, 'File');
         } catch (\Exception $e) {
             throw new ApiException("Get file error: {$e->getMessage()}");
@@ -103,25 +82,8 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
 
         try {
-			$response = Http::baseUrl("https://generativelanguage.googleapis.com")
-			->withHeaders([
-				'x-goog-api-key' => config('gemini.api_key'),
-			])
-			->timeout(config('gemini.timeout'))
-			->retry(config('gemini.retry_policy.max_retries'), config('gemini.retry_policy.retry_delay'), function ($exception, $request) {
-				if ($exception instanceof Exceptions\RateLimitException) {
-					sleep($exception->retryAfter ?? 1);
-					return true;
-				}
-				return $exception->response->status() >= 500;
-			})
-			->delete("v1beta/files/{$fileName}");
-			
-            if ($response->status() === 200) {
-                return true;
-            }
-
-            throw new ApiException('Failed to delete file.');
+            $response = $this->http->delete("/v1beta/files/{$fileName}");
+            return $response->successful();
         } catch (\Exception $e) {
             throw new ApiException("Delete file error: {$e->getMessage()}");
         }
@@ -155,7 +117,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
         
         try {
-            $response = $this->http->post('cachedContents', $payload);
+            $response = $this->http->post('/v1beta/cachedContents', $payload);
             return $this->handleResponse($response, 'Cache');
         } catch (\Exception $e) {
             throw new ApiException("Create cache error: {$e->getMessage()}");
@@ -171,7 +133,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         ]));
 
         try {
-            $response = $this->http->get("cachedContents?{$queryParams}");
+            $response = $this->http->get("/v1beta/cachedContents?{$queryParams}");
             return $this->handleResponse($response, 'Cache');
         } catch (\Exception $e) {
             throw new ApiException("List caches error: {$e->getMessage()}");
@@ -182,7 +144,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
     public function getCachedContent(string $name): Responses\CacheResponse
     {
         try {
-            $response = $this->http->get($name);
+            $response = $this->http->get("/v1beta/$name");
             return $this->handleResponse($response, 'Cache');
         } catch (\Exception $e) {
             throw new ApiException("Get cache error: {$e->getMessage()}");
@@ -208,7 +170,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         }
 
         try {
-            $response = $this->http->patch("{$name}", $payload);
+            $response = $this->http->patch("/v1beta/{$name}", $payload);
             return $this->handleResponse($response, 'Cache');
         } catch (\Exception $e) {
             throw new ApiException("Update cache error: {$e->getMessage()}");
@@ -219,7 +181,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
     public function deleteCachedContent(string $name): bool
     {
         try {
-            $response = $this->http->delete($name);
+            $response = $this->http->delete("/v1beta/$name");
             return $response->successful();
         } catch (\Exception $e) {
             throw new ApiException("Delete cache error: {$e->getMessage()}");
@@ -228,7 +190,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
 
     public function models(): array
     {
-        $response = $this->http->get('models');
+        $response = $this->http->get('/v1beta/models');
         return $response->json()['models'];
     }
 
@@ -241,7 +203,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
         try {
             $response = $this->http->withOptions([
                 'stream' => true,
-            ])->post("models/{$params['model']}:streamGenerateContent", $this->buildRequestBody($params));
+            ])->post("/v1beta/models/{$params['model']}:streamGenerateContent", $this->buildRequestBody($params));
             
             $body = $response->getBody();
             $buffer = '';
@@ -279,7 +241,7 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
     {
         $method = $params['method'] ?? 'generateContent';
         $body = $this->buildRequestBody($params, $method === 'predictLongRunning', $responseType === 'Audio');
-        $endpoint = "models/{$params['model']}:" . $method;
+        $endpoint = "/v1beta/models/{$params['model']}:" . $method;
 
         $response = $this->http->post($endpoint, $body);
 
@@ -289,15 +251,15 @@ class GeminiProvider extends BaseProvider implements ProviderInterface
                 sleep(5);
                 $status = $this->http->get($operation)->json();
             } while (!$status['done']);
-            return $this->handleResponse($this->http->get($status['response']['generatedSamples'][0][$responseType === 'Video' ? 'video' : 'uri']), $responseType);
+            return $this->handleResponse($this->http->get("/v1beta/".$status['response']['generatedSamples'][0][$responseType === 'Video' ? 'video' : 'uri']), $responseType);
         }
 
-		// Check for error response
+        // Check for error response
         if (isset($response->json()['candidates'][0]['finishReason']) && $response->json()['candidates'][0]['finishReason'] != 'STOP') {
             Log::error('Gemini API error response', ['response' => $response->json()]);
             throw new ApiException("API request failed with finishReason: {$response->json()['candidates'][0]['finishReason']}");
         }
-		
+        
         return $this->handleResponse($response, $responseType);
     }
 

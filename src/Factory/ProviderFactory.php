@@ -7,7 +7,7 @@ use HosseinHezami\LaravelGemini\Exceptions\ValidationException;
 
 class ProviderFactory
 {
-    public function create(?string $alias = null): ProviderInterface
+    public function create(?string $alias = null, ?string $apiKey = null): ProviderInterface
     {
         $alias = $alias ?: config('gemini.default_provider');
 
@@ -19,6 +19,6 @@ class ProviderFactory
 
         $class = $providerConfig['class'];
 
-        return new $class($providerConfig);
+        return new $class($providerConfig, $apiKey);
     }
 }

@@ -10,10 +10,13 @@ class HttpClient
 {
     protected PendingRequest $client;
 
-    public function __construct()
+    public function __construct(?string $baseUrl = null, ?string $apiKey = null)
     {
-        $this->client = Http::baseUrl(config('gemini.base_uri'))
-            ->withHeaders(['x-goog-api-key' => config('gemini.api_key')])
+        $baseUrl = $baseUrl ?? config('gemini.base_uri');
+        $apiKey = $apiKey ?? config('gemini.api_key');
+        
+        $this->client = Http::baseUrl($baseUrl)
+            ->withHeaders(['x-goog-api-key' => $apiKey])
             ->timeout(config('gemini.timeout'))
             ->retry(config('gemini.retry_policy.max_retries'), config('gemini.retry_policy.retry_delay'), function ($exception, $request) {
                 if ($exception instanceof RateLimitException) {
@@ -24,7 +27,25 @@ class HttpClient
             });
     }
 
-    public function post(string $url, array $data): \Illuminate\Http\Client\Response
+    public function withHeaders(array $headers): self
+    {
+        $this->client = $this->client->withHeaders($headers);
+        return $this;
+    }
+
+    public function withBody($content, string $contentType = 'application/json'): self
+    {
+        $this->client = $this->client->withBody($content, $contentType);
+        return $this;
+    }
+
+    public function withOptions(array $options): self
+    {
+        $this->client = $this->client->withOptions($options);
+        return $this;
+    }
+
+    public function post(string $url, array $data = []): \Illuminate\Http\Client\Response
     {
         return $this->client->post($url, $data);
     }
@@ -42,11 +63,5 @@ class HttpClient
     public function delete(string $url): \Illuminate\Http\Client\Response
     {
         return $this->client->delete($url);
-    }
-    
-    public function withOptions(array $options): self
-    {
-        $this->client = $this->client->withOptions($options);
-        return $this;
     }
 }

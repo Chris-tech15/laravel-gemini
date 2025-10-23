@@ -13,6 +13,11 @@ class FileResponse
         $this->data = $data;
     }
 
+    public function toArray(): array
+    {
+        return $this->data;
+    }
+
     public function files(): array
     {
         return $this->data['files'] ?? [];

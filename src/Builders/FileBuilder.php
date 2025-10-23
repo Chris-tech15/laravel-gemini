@@ -10,10 +10,10 @@ class FileBuilder
 {
     protected array $params = [];
     protected GeminiProvider $provider;
-
-    public function __construct()
+    
+    public function __construct(GeminiProvider $provider)
     {
-        $this->provider = new GeminiProvider();
+        $this->provider = $provider;
     }
 
     public function upload(string $fileType, string $filePath): string

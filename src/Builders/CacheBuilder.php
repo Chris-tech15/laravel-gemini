@@ -10,11 +10,11 @@ class CacheBuilder
 {
     protected GeminiProvider $provider;
 
-    public function __construct()
+    public function __construct(GeminiProvider $provider)
     {
-        $this->provider = new GeminiProvider();
+        $this->provider = $provider;
     }
-
+    
     // Create a cached content with direct parameters
     public function create(
         string $model,

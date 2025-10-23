@@ -81,6 +81,37 @@ The `providers` array lets you map capability types to models and HTTP methods t
 ],
 ```
 
+## Dynamic API Key Configuration
+
+By default, Laravel Gemini reads the API key from your `.env` file (`GEMINI_API_KEY`).
+
+However, you can now **set the API key dynamically at runtime** using the new `setApiKey()` method.  
+This is useful when you want to switch between multiple keys (e.g. per-user or per-request).
+
+**Example:**
+
+```php
+use HosseinHezami\LaravelGemini\Facades\Gemini;
+
+// Dynamically set API key (takes priority over .env)
+Gemini::setApiKey('my-custom-api-key');
+
+// Use Gemini as usual
+$response = Gemini::text()
+    ->prompt('Hello Gemini!')
+    ->generate();
+
+echo $response->content();
+````
+
+If `setApiKey()` is not called, the package will automatically use the default key from `.env`.
+
+**ApiKey priority order:**
+
+1. Manually set key via `Gemini::setApiKey()`
+2. Config value (`config/gemini.php`)
+3. `.env` variable (`GEMINI_API_KEY`)
+
 ---
 
 ## Builder APIs — full method reference
@@ -443,12 +474,12 @@ For more details, refer to the [Gemini API Caching Documentation](https://ai.goo
 
 ---
 
-### Streaming (Server-Sent Events)
+## Streaming (Server-Sent Events)
 The `stream` route uses `Content-Type: text/event-stream`. Connect from a browser or SSE client and consume `data: <json>` messages per chunk.
 
 ---
 
-## Streaming behaviour
+### Streaming behaviour
 
 - Implemented using SSE (Server-Sent Events). The stream yields chunks where each chunk is typically `['text' => '...']`.
 - Client should reconnect behaviorally for resilience and handle partial chunks.

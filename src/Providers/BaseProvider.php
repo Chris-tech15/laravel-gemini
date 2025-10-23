@@ -10,9 +10,9 @@ abstract class BaseProvider
 {
     protected HttpClient $http;
 
-    public function __construct()
+    public function __construct(?string $apiKey = null)
     {
-        $this->http = new HttpClient();
+        $this->http = new HttpClient(apiKey: $apiKey);
     }
 
     protected function handleResponse($response, string $type)
@@ -36,8 +36,8 @@ abstract class BaseProvider
 
         return new ("HosseinHezami\\LaravelGemini\\Responses\\" . $type . "Response")($data);
     }
-	
-	/**
+    
+    /**
      * Upload a file to Gemini API and return its URI.
      *
      * @param string $fileType Type of file (e.g., 'image', 'video', 'audio', 'document')
@@ -48,75 +48,64 @@ abstract class BaseProvider
      * @throws Exceptions\RateLimitException
      */
     protected function upload(string $fileType, string $filePath): string
-	{
-		if (!file_exists($filePath) || !is_readable($filePath)) {
-			throw new Exceptions\ValidationException("File does not exist or is not readable: {$filePath}");
-		}
+    {
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            throw new Exceptions\ValidationException("File does not exist or is not readable: {$filePath}");
+        }
 
-		$validTypes = ['image', 'video', 'audio', 'document'];
-		if (!in_array($fileType, $validTypes)) {
-			throw new Exceptions\ValidationException("Invalid file type: {$fileType}. Allowed types: " . implode(', ', $validTypes));
-		}
+        $validTypes = ['image', 'video', 'audio', 'document'];
+        if (!in_array($fileType, $validTypes)) {
+            throw new Exceptions\ValidationException("Invalid file type: {$fileType}. Allowed types: " . implode(', ', $validTypes));
+        }
 
-		$mimeType = $this->getMimeType($fileType, $filePath);
-		$fileSize = filesize($filePath);
-		$displayName = basename($filePath);
+        $mimeType = $this->getMimeType($fileType, $filePath);
+        $fileSize = filesize($filePath);
+        $displayName = basename($filePath);
 
-		/**
-		 * Step 1: Request resumable upload session
-		 */
-		 $initialResponse = Http::baseUrl('https://generativelanguage.googleapis.com')
-		->withHeaders([
-			'x-goog-api-key' => config('gemini.api_key'),
-			'X-Goog-Upload-Protocol' => 'resumable',
-			'X-Goog-Upload-Command' => 'start',
-			'X-Goog-Upload-Header-Content-Length' => $fileSize,
-			'X-Goog-Upload-Header-Content-Type' => $mimeType,
-		])
-		->timeout(config('gemini.timeout'))
-		->retry(config('gemini.retry_policy.max_retries'), config('gemini.retry_policy.retry_delay'), function ($exception, $request) {
-			if ($exception instanceof Exceptions\RateLimitException) {
-				sleep($exception->retryAfter ?? 1);
-				return true;
-			}
-			return $exception->response->status() >= 500;
-		})
-		->post('/upload/v1beta/files', [
-			'file' => [
-				'display_name' => $displayName,
-			],
-		]);
+        /**
+         * Step 1: Initiate resumable upload session
+         */
+        $initialResponse = $this->http
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post('/upload/v1beta/files?uploadType=resumable', [
+                'file' => [
+                    'display_name' => $displayName,
+                ],
+            ]);
 
-		$uploadUrl = $initialResponse->header('X-Goog-Upload-URL');
+        $uploadUrl = $initialResponse->header('Location');
 
-		if (!$uploadUrl) {
-			throw new Exceptions\ApiException('Upload URL not received from API');
-		}
+        if (!$uploadUrl) {
+            throw new Exceptions\ApiException('Upload URL not received from API');
+        }
 
-		/**
-		 * Step 2: Upload file data + finalize
-		 */
-		$uploadResponse = Http::withHeaders([
-			'X-Goog-Upload-Offset' => 0,
-			'X-Goog-Upload-Command' => 'upload, finalize',
-			'Content-Length' => $fileSize,
-		])->withBody(
-			file_get_contents($filePath),
-			$mimeType
-		)->post($uploadUrl);
+        /**
+         * Step 2: Upload the entire file in a single chunk and finalize
+         */
+        $uploadResponse = $this->http
+            ->withHeaders([
+                'Content-Range' => "bytes 0-" . ($fileSize - 1) . "/$fileSize",
+            ])
+            ->withBody(
+                file_get_contents($filePath),
+                $mimeType
+            )
+            ->post($uploadUrl);
 
-		if (!$uploadResponse->successful()) {
-			throw new Exceptions\ApiException('Upload failed: ' . $uploadResponse->body());
-		}
+        if (!$uploadResponse->successful()) {
+            throw new Exceptions\ApiException('Upload failed: ' . $uploadResponse->body());
+        }
 
-		$json = $uploadResponse->json();
+        $json = $uploadResponse->json();
 
         if (!isset($json['file']['uri'])) {
             throw new Exceptions\ApiException('File URI not found in API response');
         }
 
-		return $json['file']['uri'];
-	}
+        return $json['file']['uri'];
+    }
     
     protected function getMimeType(string $fileType, string $filePath): string
     {
@@ -128,6 +117,6 @@ abstract class BaseProvider
         ];
 
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        return $mimeTypes[$fileType][$extension] ?? throw new Exceptions\ValidationException("Unsupported {$type} format: {$extension}");
+        return $mimeTypes[$fileType][$extension] ?? throw new Exceptions\ValidationException("Unsupported {$fileType} format: {$extension}");
     }
 }

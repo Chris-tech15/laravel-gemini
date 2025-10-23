@@ -14,9 +14,17 @@ class Gemini
 {
     protected ProviderFactory $factory;
 
+    protected ?string $apiKey = null;
+
     public function __construct(ProviderFactory $factory)
     {
         $this->factory = $factory;
+    }
+
+    public function setApiKey(string $apiKey): self
+    {
+        $this->apiKey = $apiKey;
+        return $this;
     }
 
     public function text(): TextBuilder
@@ -61,6 +69,6 @@ class Gemini
 
     public function getProvider(?string $alias = null)
     {
-        return $this->factory->create($alias);
+        return $this->factory->create($alias, $this->apiKey);
     }
 }

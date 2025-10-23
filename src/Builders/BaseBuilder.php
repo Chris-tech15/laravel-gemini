@@ -25,7 +25,6 @@ abstract class BaseBuilder
         if (empty($this->params['method'])) {
             throw new ValidationException("Default method for {$this->params['capability']} not found in configuration.");
         }
-
     }
 
     abstract protected function getCapability(): string;

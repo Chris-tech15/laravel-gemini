@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'base_uri' => env('GEMINI_BASE_URI', 'https://generativelanguage.googleapis.com/v1beta/'),
+    'base_uri' => env('GEMINI_BASE_URI', 'https://generativelanguage.googleapis.com'),
 
     /*
     |--------------------------------------------------------------------------

@@ -16,7 +16,7 @@ class Gemini extends Facade
     {
         return 'gemini';
     }
-	
+    
 	public static function text(): TextBuilder
     {
         return static::getFacadeRoot()->text();
@@ -45,5 +45,11 @@ class Gemini extends Facade
     public static function caches(): CacheBuilder
     {
         return static::getFacadeRoot()->caches();
+    }
+
+    public static function setApiKey(string $apiKey): self
+    {
+        static::getFacadeRoot()->setApiKey($apiKey);
+        return new static;
     }
 }
